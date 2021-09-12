@@ -2,20 +2,17 @@ import * as AWS from 'aws-sdk'
 import * as AWSXRay from 'aws-xray-sdk'
 
 import { DocumentClient } from 'aws-sdk/clients/dynamodb'
+import { FileStorageS3 } from '../fileStorageLogic/s3'
 import { TodoItem } from '../models/TodoItem'
 import { UpdateTodoRequest } from '../requests/UpdateTodoRequest'
 
 const XAWS = AWSXRay.captureAWS(AWS)
-
 export class TodoAccess {
   constructor(
     private readonly docClient: DocumentClient = createDynamoDBClient(),
     private readonly todoTable = process.env.TODOS_TABLE,
     private readonly bucketName = process.env.ATTACHMENT_S3_BUCKET,
-    private readonly urlExpiration = process.env.S3_URL_EXPIRATION,
-    private readonly s3 = new XAWS.S3({
-      signatureVersion: 'v4'
-    })
+    private readonly storage = new FileStorageS3()
   ) {}
 
   async getAllTodosForUser(userId: string): Promise<any> {
@@ -103,11 +100,7 @@ export class TodoAccess {
     imageId: string,
     userId: string
   ): Promise<string> {
-    const attachmentUrl = await this.s3.getSignedUrl('putObject', {
-      Bucket: this.bucketName,
-      Key: imageId,
-      Expires: this.urlExpiration
-    })
+    const attachmentUrl = await this.storage.getPresignedImageUrl(imageId)
 
     this.docClient.update(
       {
