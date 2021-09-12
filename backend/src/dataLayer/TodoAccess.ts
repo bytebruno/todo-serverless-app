@@ -84,13 +84,13 @@ export class TodoAccess {
       {
         TableName: this.todoTable,
         Key: {
-          todoId,
-          userId
+          userId,
+          todoId
         }
       },
-      function (err, data) {
+      (err, data) => {
         if (err) {
-          console.log('ERRROR ' + err)
+          console.log('ERROR ' + err)
           throw new Error('Error ' + err)
         } else {
           console.log('Element deleted ' + data)
