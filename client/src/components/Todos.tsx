@@ -1,7 +1,5 @@
-import dateFormat from 'dateformat'
-import { History } from 'history'
-import update from 'immutability-helper'
 import * as React from 'react'
+
 import {
   Button,
   Checkbox,
@@ -9,14 +7,17 @@ import {
   Grid,
   Header,
   Icon,
-  Input,
   Image,
+  Input,
   Loader
 } from 'semantic-ui-react'
-
 import { createTodo, deleteTodo, getTodos, patchTodo } from '../api/todos-api'
+
 import Auth from '../auth/Auth'
+import { History } from 'history'
 import { Todo } from '../types/Todo'
+import dateFormat from 'dateformat'
+import update from 'immutability-helper'
 
 interface TodosProps {
   auth: Auth
@@ -64,7 +65,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
     try {
       await deleteTodo(this.props.auth.getIdToken(), todoId)
       this.setState({
-        todos: this.state.todos.filter(todo => todo.todoId !== todoId)
+        todos: this.state.todos.filter((todo) => todo.todoId !== todoId)
       })
     } catch {
       alert('Todo deletion failed')
@@ -96,7 +97,7 @@ export class Todos extends React.PureComponent<TodosProps, TodosState> {
         todos,
         loadingTodos: false
       })
-    } catch (e) {
+    } catch (e: any) {
       alert(`Failed to fetch todos: ${e.message}`)
     }
   }
