@@ -21,7 +21,7 @@ provider:
 
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
-    TODO_USER_INDEX: TodoUserIndex
+    TODOS_CREATED_AT_INDEX: TodosCreatedAtIndex
     ATTACHMENT_S3_BUCKET: bytebruno-todo-images-${self:provider.stage}
     SIGNED_URL_EXPIRATION: 300
 
@@ -38,8 +38,8 @@ provider:
           Resource: '*'
 
 functions:
-  # Auth:
-  #   handler: src/lambda/auth/auth0Authorizer.handler
+  Auth:
+    handler: src/lambda/auth/auth0Authorizer.handler
 
   # # TODO: Configure this function -
   # # Provide iamRoleStatements property for performing Actions on DynamoDB
@@ -50,23 +50,34 @@ functions:
           method: get
           path: todos
           cors: true
-          #authorizer: Auth
+          authorizer: Auth
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      - Effect: Allow
+        Action:
+          - dynamodb:Query
+          - dynamodb:Scan
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}/index/${self:provider.environment.TODOS_CREATED_AT_INDEX}
 
-# # TODO: Configure this function -
-# # Provide iamRoleStatements property. Decide the Actions and AWS Resource.
-# # To refer to an AWS resource defined in the "Resources" section, you can use "Resource: !GetAtt <resource-name>.Arn"
-# # To validate incoming HTTP requests, we have provided the request schemas in function definition below.
-# CreateTodo:
-#   handler: src/lambda/http/createTodo.handler
-#   events:
-#     - http:
-#         method: post
-#         path: todos
-#         cors: true
-#         authorizer: Auth
-#         request:
-#           schemas:
-#             application/json: ${file(models/create-todo-model.json)}
+  CreateTodo:
+    handler: src/lambda/http/createTodo.handler
+    events:
+      - http:
+          method: post
+          path: todos
+          cors: true
+          authorizer: Auth
+          request:
+            schema:
+              application/json: ${file(models/create-todo-request.json)}
+    iamRoleStatements:
+      - Effect: Allow
+        Action:
+          - dynamodb:PutItem
+        Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
 
 # # TODO: Configure this function
 # # Provide property for setting up CORS, Authorizer, iamRoleStatements, and request schemas
@@ -112,22 +123,26 @@ resources:
       Type: AWS::DynamoDB::Table
       Properties:
         AttributeDefinitions:
+          - AttributeName: userId
+            AttributeType: S
           - AttributeName: todoId
             AttributeType: S
-          - AttributeName: userId
+          - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          - AttributeName: todoId
-            KeyType: HASH
           - AttributeName: userId
+            KeyType: HASH
+          - AttributeName: todoId
             KeyType: RANGE
         BillingMode: PAY_PER_REQUEST
         TableName: ${self:provider.environment.TODOS_TABLE}
-        GlobalSecondaryIndexes:
-          - IndexName: ${self:provider.environment.TODO_USER_INDEX}
+        LocalSecondaryIndexes:
+          - IndexName: ${self:provider.environment.TODOS_CREATED_AT_INDEX}
             KeySchema:
               - AttributeName: userId
                 KeyType: HASH
+              - AttributeName: createdAt
+                KeyType: RANGE
             Projection:
               ProjectionType: ALL
 
