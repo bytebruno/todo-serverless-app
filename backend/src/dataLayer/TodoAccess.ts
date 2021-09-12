@@ -53,8 +53,8 @@ export class TodoAccess {
       {
         TableName: this.todoTable,
         Key: {
-          todoId,
-          userId
+          userId,
+          todoId
         },
         UpdateExpression: 'set #name = :n, #dueDate = :due, #done = :d',
         ExpressionAttributeValues: {
@@ -68,7 +68,7 @@ export class TodoAccess {
           '#done': 'done'
         }
       },
-      function (err, data) {
+      (err, data) => {
         if (err) {
           console.log('ERRROR ' + err)
           throw new Error('Error ' + err)
@@ -121,7 +121,7 @@ export class TodoAccess {
           ':attachmentUrl': `https://${this.bucketName}.s3.amazonaws.com/${imageId}`
         }
       },
-      function (err, data) {
+      (err, data) => {
         if (err) {
           console.log('ERRROR ' + err)
           throw new Error('Error ' + err)
