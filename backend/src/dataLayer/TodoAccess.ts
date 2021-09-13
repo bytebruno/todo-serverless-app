@@ -16,7 +16,6 @@ export class TodoAccess {
   ) {}
 
   async getAllTodosForUser(userId: string): Promise<any> {
-    console.log('userId: ', userId)
     return this.docClient
       .query({
         TableName: this.todoTable,
@@ -44,8 +43,6 @@ export class TodoAccess {
     updatedTodo: UpdateTodoRequest,
     userId: string
   ): Promise<void> {
-    console.log('Updating todoId: ', todoId, ' userId: ', userId)
-
     this.docClient.update(
       {
         TableName: this.todoTable,
@@ -66,12 +63,7 @@ export class TodoAccess {
         }
       },
       (err, data) => {
-        if (err) {
-          console.log('ERRROR ' + err)
-          throw new Error('Error ' + err)
-        } else {
-          console.log('Element updated ' + data)
-        }
+        this.handleError(err, data)
       }
     )
   }
@@ -86,12 +78,7 @@ export class TodoAccess {
         }
       },
       (err, data) => {
-        if (err) {
-          console.log('ERROR ' + err)
-          throw new Error('Error ' + err)
-        } else {
-          console.log('Element deleted ' + data)
-        }
+        this.handleError(err, data)
       }
     )
   }
@@ -115,15 +102,19 @@ export class TodoAccess {
         }
       },
       (err, data) => {
-        if (err) {
-          console.log('ERROR ' + err)
-          throw new Error('Error ' + err)
-        } else {
-          console.log('Element updated ' + data)
-        }
+        this.handleError(err, data)
       }
     )
     return attachmentUrl
+  }
+
+  handleError(err: any, data: any) {
+    if (err) {
+      console.log('ERROR ' + err)
+      throw new Error('Error ' + err)
+    } else {
+      console.log('Element deleted ' + data)
+    }
   }
 }
 

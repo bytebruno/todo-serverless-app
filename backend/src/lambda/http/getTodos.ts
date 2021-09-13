@@ -19,7 +19,6 @@ export const handler = middy(
     const result = await getAllTodosForUser(userId)
 
     if (result.count !== 0) {
-      console.log(result)
       return {
         statusCode: 200,
         body: JSON.stringify({ items: result.Items })
